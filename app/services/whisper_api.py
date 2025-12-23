@@ -15,11 +15,7 @@
 # app/services/whisper_api.py
 
 import whisper
-
-
 _MODEL = whisper.load_model("base")
-
-
 def transcribe_audio_file(file_path: str) -> str:
     """
     Offline transcription using openai-whisper (local).
