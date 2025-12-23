@@ -49,7 +49,7 @@ LangGraph State Machine
       🠋  
 Task Worker (audio_worker/code_worker/text_worker/extraction_worker/youtube_worker)   
       🠋  
-Post-processing
+Post-processing  
       🠋  
 Response  
 
