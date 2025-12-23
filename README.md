@@ -47,10 +47,10 @@ Intent Classifier (LLM)
       🠋  
 LangGraph State Machine  
       🠋  
-Task Worker (OCR / Audio / LLM )  
+Task Worker (audio_worker/code_worker/text_worker/extraction_worker/youtube_worker)   
       🠋  
-Post-processing  
-      🠋
+Post-processing
+      🠋  
 Response  
 
 ## Tech Stack
