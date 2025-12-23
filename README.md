@@ -42,20 +42,16 @@ The system uses **LangGraph** for orchestration, **FastAPI** for backend APIs, a
 
 ## Architecture Overview
 User (Text / File Upload)
-      |
-      v
+      🠋
+      
 Intent Classifier (LLM)
-      |
-      v
+      🠋
 LangGraph State Machine
-      |
-      v
+      🠋
 Task Worker (OCR / Audio / LLM )
-      |
-      v
+      🠋
 Post-processing
-      |
-      v
+      🠋
 Response
 
 ## Tech Stack
