@@ -66,34 +66,33 @@ Response
 | Audio Processing   | FFmpeg
 
 ## System dependencies
-Tessaract OCR
-Download https://github.com/UB-Mannheim/tesseract/wiki 
-Add to System Variables path:
-C:\Program Files\Tesseract-OCR\
-Download ffmpeg-8.0.1-essentials_build from https://www.gyan.dev/ffmpeg/builds/
-exatract the zip file
-Add to System Variables path:
-C:\ffmpeg\ffmpeg-8.0.1-essentials_build\bin
+Tessaract OCR  
+Download https://github.com/UB-Mannheim/tesseract/wiki  
+Add to System Variables path:  
+C:\Program Files\Tesseract-OCR\  
+Download ffmpeg-8.0.1-essentials_build from https://www.gyan.dev/ffmpeg/builds/  
+exatract the zip file  
+Add to System Variables path:  
+C:\ffmpeg\ffmpeg-8.0.1-essentials_build\bin  
 
-conda create -n agent python=3.10
-conda activate agent
-pip install -r requirements.txt
-python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
-streamlit run streamlit.py
+conda create -n agent python=3.10  
+conda activate agent  
+pip install -r requirements.txt  
+python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000  
+streamlit run streamlit.py  
 
 ## Sample Test Cases
 ## PDF Summarization
-Upload a PDF
-Input: Summarize the document
-Output: structured summary
+Upload a PDF  
+Input: Summarize the document  
+Output: structured summary  
 ## Image OCR
-Upload an image
-Output: extracted text + OCR confidence
+Upload an image  
+Output: extracted text + OCR confidence  
 ## Audio Lecture (5 min)
-Upload audio file
-Input: Summarize this audio
-Output:
-Summary 
+Upload audio file  
+Input: Summarize this audio  
+Output:Summary   
 
 
 
