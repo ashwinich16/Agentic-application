@@ -41,18 +41,17 @@ The system uses **LangGraph** for orchestration, **FastAPI** for backend APIs, a
 - Per-session in-memory context
 
 ## Architecture Overview
-User (Text / File Upload)
+User (Text / File Upload)  
+      🠋      
+Intent Classifier (LLM)  
+      🠋  
+LangGraph State Machine  
+      🠋  
+Task Worker (OCR / Audio / LLM )  
+      🠋  
+Post-processing  
       🠋
-      
-Intent Classifier (LLM)
-      🠋
-LangGraph State Machine
-      🠋
-Task Worker (OCR / Audio / LLM )
-      🠋
-Post-processing
-      🠋
-Response
+Response  
 
 ## Tech Stack
 | Layer              | Technology
