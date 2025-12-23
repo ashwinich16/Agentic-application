@@ -2,8 +2,10 @@ from youtube_transcript_api import YouTubeTranscriptApi, TranscriptsDisabled, No
 
 def fetch_youtube_transcript(video_id: str) -> str:
     try:
-        transcript_list = YouTubeTranscriptApi.get_transcript(video_id)
-        return " ".join(item["text"] for item in transcript_list)
+        ytt_api = YouTubeTranscriptApi()
+        transcript_list = ytt_api.fetch(video_id)
+
+        return " ".join(snippet.text for snippet in transcript_list)
     except (TranscriptsDisabled, NoTranscriptFound):
         return "Transcript not available for this video."
     except Exception as e:

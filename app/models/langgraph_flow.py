@@ -1,13 +1,14 @@
 from typing import TypedDict, Optional, List, Dict, Any
 from langgraph.graph import StateGraph, START, END
 
-from app.supervisor.intent_classifier import classify_intent
+from app.supervisor.intent_classifer import classify_intent
 from app.supervisor.followup import get_followup_question
 
-from app.workers.extraction_worker import extract_from_image, extract_from_pdf
-from app.workers.youtube_worker import youtube_transcript_task
-from app.workers.text_worker import summarize_text, sentiment_analysis, question_answering
-from app.workers.code_worker import explain_code
+from app.Workers.extraction_worker import extract_from_image, extract_from_pdf
+from app.Workers.youtube_worker import youtube_transcript_task
+from app.Workers.text_worker import summarize_text, sentiment_analysis, question_answering
+from app.Workers.code_worker import explain_code
+from app.Workers.audio_worker import transcribe_and_summarize
 
 class AgentState(TypedDict):
     session_id: str
@@ -15,7 +16,7 @@ class AgentState(TypedDict):
     files: List[Any]
 
     intent: Optional[str]
-    status: str                 # "follow_up" | "completed"
+    status: str                 
     question: Optional[str]
     result: Optional[Dict[str, Any]]
     final_text: Optional[str]
@@ -31,7 +32,7 @@ def node_follow_up(state: AgentState) -> Dict[str, Any]:
     return {
         "status": "follow_up",
         "question": question,
-        "final_text": question,  # text-only guarantee
+        "final_text": question, 
     }
 
 def node_execute_task(state: AgentState) -> Dict[str, Any]:
@@ -61,7 +62,25 @@ def node_execute_task(state: AgentState) -> Dict[str, Any]:
         result = youtube_transcript_task(text)
 
     elif intent == "SUMMARIZATION":
-        result = summarize_text(text)
+        
+        if files:
+            f = files[0]
+            ext = (f.filename or "").lower().split(".")[-1]
+            content = f.file.read()  
+            f.file.seek(0)
+            if ext in {"pdf"}:
+                extracted = extract_from_pdf(content)
+                pdf_text = extracted.get("text", "")
+                result = summarize_text(pdf_text)
+            elif ext in {"jpg", "jpeg", "png"}:
+                extracted = extract_from_image(content)
+                img_text = extracted.get("text", "")
+                result = summarize_text(img_text)
+            else:
+                result = {"error": f"Unsupported file type for summarization: .{ext}"}
+        else:
+
+            result = summarize_text(text)
 
     elif intent == "SENTIMENT_ANALYSIS":
         result = sentiment_analysis(text)
@@ -72,6 +91,23 @@ def node_execute_task(state: AgentState) -> Dict[str, Any]:
     elif intent == "CONVERSATIONAL_QA":
 
         result = question_answering(text, text)
+
+    elif intent == "AUDIO_TRANSCRIPTION_SUMMARY":
+        if not files:
+            question = "Please upload an audio file (mp3/wav/m4a) so I can transcribe and summarize it."
+            return {"status": "follow_up", "question": question, "final_text": question}
+
+        f = files[0]
+        ext = (f.filename or "").lower().split(".")[-1]
+        audio_bytes = f.file.read()
+        f.file.seek(0)
+
+        allowed = {"mp3", "wav", "mp4","ogg"}
+        if ext not in allowed:
+            result = {"error": f"Unsupported audio type: .{ext}"}
+        else:
+            result = transcribe_and_summarize(audio_bytes, filename=f.filename)
+
 
     else:
         question = get_followup_question(text)

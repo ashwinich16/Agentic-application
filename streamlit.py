@@ -3,58 +3,81 @@ import requests
 
 API_URL = "http://localhost:8000/process"
 
+st.set_page_config(page_title="Agentic Chatbot")
+
 if "session_id" not in st.session_state:
-    st.session_state["session_id"] = None
+    st.session_state.session_id = None
 
-st.title("Agentic Application UI")
+if "messages" not in st.session_state:
 
-user_text = st.text_area("Enter your text")
+    st.session_state.messages = []
 
-uploaded_files = st.file_uploader(
-    "Upload files (images / PDF / audio)",
-    accept_multiple_files=True,
-    type=["png", "jpg", "jpeg", "pdf", "mp3", "wav", "m4a"],
-)
+st.title("Agentic Application Chatbot")
 
-if st.button("Send"):
-    uploaded_files = uploaded_files or []  
+for m in st.session_state.messages:
+    with st.chat_message(m["role"]):
+        st.markdown(m["content"])
 
-    data = {"text": user_text or ""}
-    files = [
-        ("files", (f.name, f.getvalue(), f.type))
-        for f in uploaded_files
-    ]
+with st.sidebar:
+    st.header("Attachments (optional)")
+    uploaded_files = st.file_uploader(
+        "Upload images / PDF / audio",
+        accept_multiple_files=True,
+        type=["png", "jpg", "jpeg", "pdf", "mp3", "wav", "m4a","ogg"],
+    )
+    st.caption("Tip: Upload here, then send a message.")
+
+prompt = st.chat_input("Type your message...")
+if prompt:
+ 
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    data = {"text": prompt}
+    files_payload = []
+    for f in (uploaded_files or []):
+        files_payload.append(("files", (f.name, f.getvalue(), f.type)))
 
     headers = {}
-    if st.session_state["session_id"]:
-        headers["session_id"] = st.session_state["session_id"]
+    if st.session_state.session_id:
+        headers["session_id"] = st.session_state.session_id
 
-    with st.spinner("Processing..."):
-        response = requests.post(
-            API_URL,
-            data=data,
-            files=files,
-            headers=headers,
-            timeout=120,
-        )
+    with st.chat_message("assistant"):
+        with st.spinner("Thinking..."):
+            try:
+                r = requests.post(
+                    API_URL,
+                    data=data,
+                    files=files_payload,
+                    headers=headers,
+                    timeout=120,
+                )
+            except requests.RequestException as e:
+                msg = f"Request error: {e}"
+                st.error(msg)
+                st.session_state.messages.append({"role": "assistant", "content": msg})
+                st.stop()
 
-    if response.status_code != 200:
-        st.error(f"Request failed: {response.status_code}")
-        st.stop()
+            if r.status_code != 200:
+                msg = f"Request failed: {r.status_code}\n\n{r.text}"
+                st.error(msg)
+                st.session_state.messages.append({"role": "assistant", "content": msg})
+                st.stop()
 
-    result = response.json()
+            result = r.json()
+            if result.get("session_id"):
+                st.session_state.session_id = result["session_id"]
 
-    # save session id
-    if result.get("session_id"):
-        st.session_state["session_id"] = result["session_id"]
+            resp = result.get("response", {})
+            status = resp.get("status")
 
-    resp = result.get("response", {})
-    status = resp.get("status")
+            if status == "follow_up":
+                assistant_text = resp.get("question", "Need more details.")
+            elif status == "completed":
+                assistant_text = resp.get("result", "")
+            else:
+                assistant_text = f"Unexpected response format: {result}"
 
-    if status == "follow_up":
-        st.warning(resp.get("question", "Need more details."))
-    elif status == "completed":
-        st.success("Task Completed")
-        st.write(resp.get("result", ""))
-    else:
-        st.error("Unexpected response format")
+            st.markdown(assistant_text)
+            st.session_state.messages.append({"role": "assistant", "content": assistant_text})

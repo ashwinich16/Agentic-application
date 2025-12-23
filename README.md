@@ -1,85 +1,105 @@
 # Agentic Application (FastAPI + LangGraph + Streamlit)
 
-An agentic multimodal application that can handle:
-- Text tasks: summarization, sentiment analysis, QA, code explanation
-- Image/PDF: OCR extraction (Google Cloud Vision)
-- YouTube: transcript fetch + cleanup
-- Memory: per-session in-memory store
-- LLM: Qwen via NVIDIA NIM (OpenAI-compatible endpoint)
+An **agentic multimodal AI application** that autonomously understands user intent and executes the correct task across **text, image, PDF, audio, and YouTube tancripts**.
 
-## Project Structure
+The system uses **LangGraph** for orchestration, **FastAPI** for backend APIs, and **Streamlit** for a simple chatbot-style UI.
 
-app/
-├── main.py
-├── models/
-│   └── langgraph_flow.py
-├── memory/
-│   └── store.py
-├── supervisor/
-│   ├── intent_classifier.py
-│   └── followup.py
-├── services/
-│   ├── llm_api.py
-│   ├── vision_api.py
-│   └── youtube_api.py
-├── workers/
-│   ├── extraction_worker.py
-│   ├── youtube_worker.py
-│   ├── text_worker.py
-│   └── code_worker.py
-└── utils/
-    └── text_cleaner.py
+## Features
+#### 📝 Text-based Tasks
+- **Summarization**
+  - 1-line summary
+  - 3 bullet points
+  - 5-sentence paragraph
+- **Sentiment Analysis**
+  - Sentiment label (Positive / Negative / Neutral)
+  - Confidence score
+  - One-line justification
+- **Conversational Question Answering**
+- **Code Explanation**
+  - What the code does
+  - Potential bugs or issues
+  - Time complexity analysis
 
-streamlit.py
+#### Image / PDF Processing
+- Image OCR using **Tesseract**
+  - Returns cleaned text + OCR confidence
+- PDF text extraction using **pypdf**
+  - Suitable for digitally generated PDFs
 
----
+#### YouTube
+- Detects YouTube URL anywhere in input
+- Extracts video ID
+- Fetches transcript or returns fallback message
 
+#### Audio
+- Offline audio transcription using **Whisper** ans summarization of the audio
 
+#### Agent Capabilities
+- Intent classification using LLM
+- Autonomous task routing
+- Follow-up questions when required inputs are missing
+- Per-session in-memory context
 
-### Google Vision
-Google Vision uses service account credentials
-## How to Run
+## Architecture Overview
+User (Text / File Upload)
+      |
+      v
+Intent Classifier (LLM)
+      |
+      v
+LangGraph State Machine
+      |
+      v
+Task Worker (OCR / Audio / LLM )
+      |
+      v
+Post-processing
+      |
+      v
+Response
 
-### 1 Create and activate environment
-python -m venv .venv
-# Windows:
-.venv\Scripts\activate
+## Tech Stack
+| Layer              | Technology
+|--------------------|-----------
+| Backend API        | FastAPI 
+| Orchestration      | LangGraph 
+| Frontend           | Streamlit 
+| LLM                |LLaMA via NVIDIA NIM
+| OCR                | Tesseract
+| PDF Parsing        | pypdf 
+| Audio Transcription| Whisper (offline)
+| Audio Processing   | FFmpeg
 
+## System dependencies
+Tessaract OCR
+Download https://github.com/UB-Mannheim/tesseract/wiki 
+Add to System Variables path:
+C:\Program Files\Tesseract-OCR\
+Download ffmpeg-8.0.1-essentials_build from https://www.gyan.dev/ffmpeg/builds/
+exatract the zip file
+Add to System Variables path:
+C:\ffmpeg\ffmpeg-8.0.1-essentials_build\bin
+
+conda create -n agent python=3.10
+conda activate agent
 pip install -r requirements.txt
+python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+streamlit run streamlit.py
 
-## Architecture (High-Level)
+## Sample Test Cases
+## PDF Summarization
+Upload a PDF
+Input: Summarize the document
+Output: structured summary
+## Image OCR
+Upload an image
+Output: extracted text + OCR confidence
+## Audio Lecture (5 min)
+Upload audio file
+Input: Summarize this audio
+Output:
+Summary 
 
-User (Streamlit UI)
-        |
-        v
-FastAPI /process  ---------------------+
-        |                              |
-        v                              |
-LangGraph Flow (Supervisor + Workers)  |
-        |                              |
-        +--> Intent Classifier (NIM/Qwen)
-        |
-        +--> If UNKNOWN -> Follow-up question
-        |
-        +--> Else route to correct Worker:
-              - extraction_worker (Vision OCR)
-              - youtube_worker (Transcript)
-              - text_worker (LLM tasks)
-              - code_worker (LLM explanation)
-        |
-        v
-Postprocess (always returns TEXT)
-        |
-        v
-Return JSON response + update Memory
 
----
 
-## LangGraph Flow (Logic)
 
-1) classify_intent
-2) if intent == UNKNOWN -> follow_up
-3) else -> execute_task
-4) postprocess -> END
-
-Memory is stored per session_id (in-memory dict).

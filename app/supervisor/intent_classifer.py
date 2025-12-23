@@ -16,7 +16,7 @@ client = OpenAI(
     base_url=NIM_BASE_URL,
 )
 
-INTENT_MODEL = os.getenv("INTENT_MODEL", "qwen/qwen2_5-7b-instruct")
+INTENT_MODEL = os.getenv("INTENT_MODEL", "qwen/qwen-2.5-7b-instruct")
 
 INTENTS = [
     "IMAGE_PDF_EXTRACTION",

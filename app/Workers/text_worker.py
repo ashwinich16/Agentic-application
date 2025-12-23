@@ -1,5 +1,3 @@
-# app/workers/text_worker.py
-
 from typing import Dict
 from app.utils.text_cleaner import clean_text
 from app.services.llm_api import (
@@ -10,11 +8,6 @@ from app.services.llm_api import (
 
 
 def summarize_text(text: str) -> Dict:
-    """
-    1-line summary
-    3 bullets
-    5-sentence summary
-    """
     if not text or not text.strip():
         return {"error": "No text provided for summarization."}
 
@@ -24,9 +17,6 @@ def summarize_text(text: str) -> Dict:
 
 
 def sentiment_analysis(text: str) -> Dict:
-    """
-    Label + confidence + justification
-    """
     if not text or not text.strip():
         return {"error": "No text provided for sentiment analysis."}
 
@@ -36,9 +26,6 @@ def sentiment_analysis(text: str) -> Dict:
 
 
 def question_answering(context: str, question: str) -> Dict:
-    """
-    Conversational QA
-    """
     if not context or not context.strip():
         return {"error": "No context provided."}
     if not question or not question.strip():

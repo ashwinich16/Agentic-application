@@ -38,15 +38,10 @@ def process_input(
 
     user_text = (text or "").strip()
     upload_files = files or []
-
-    # If previous turn asked a follow-up, combine it with the user's new answer.
-    # This is the practical "loop back to supervisor" across requests.
     prev_q = _latest_assistant_question(memory)
     combined_text = user_text
     if prev_q and user_text:
         combined_text = f"Previous follow-up question: {prev_q}\nUser answer: {user_text}"
-
-    # Store user's raw message (not combined) for clean history
     if user_text:
         append_memory(session_id, "messages", {"role": "user", "content": user_text})
 
